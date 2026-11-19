@@ -1,0 +1,36 @@
+---
+- name: Configure and deploy DevOps Spring Boot application
+  hosts: appservers
+  become: yes
+  vars:
+    app_port: 8080
+    app_dir: /opt/devops-app
+  roles:
+    - common
+  tasks:
+    - name: Install OpenJDK 17 JRE
+      apt:
+        name: openjdk-17-jre
+        state: present
+        update_cache: yes
+
+    - name: Copy packaged application JAR
+      copy:
+        src: ../target/devops-pipeline-app-1.0.0.jar
+        dest: "{{ app_dir }}/app.jar"
+        mode: '0644'
+      notify: restart devops-app
+
+    - name: Deploy systemd unit file
+      template:
+        src: templates/app.service.j2
+        dest: /etc/systemd/system/devops-app.service
+      notify: restart devops-app
+
+  handlers:
+    - name: restart devops-app
+      systemd:
+        name: devops-app
+        daemon_reload: yes
+        state: restarted
+        enabled: yes

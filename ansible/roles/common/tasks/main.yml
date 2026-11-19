@@ -1,0 +1,6 @@
+---
+- name: Ensure application directory exists
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    mode: '0755'
